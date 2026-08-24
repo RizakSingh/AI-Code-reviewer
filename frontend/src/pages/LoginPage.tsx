@@ -5,14 +5,22 @@ import { useAuth } from "../auth/AuthContext"
 export function LoginPage() {
   const { user, loading, login } = useAuth()
   const [redirecting, setRedirecting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   if (!loading && user) return <Navigate to="/" replace />
 
   async function handleLogin() {
     setRedirecting(true)
+    setError(null)
     try {
       await login()
-    } catch {
+    } catch (err) {
+      console.error("Login failed", err)
+      setError(
+        "Couldn't reach the server. Make sure the backend is running at " +
+          (import.meta.env.VITE_API_URL ?? "http://localhost:8000") +
+          ".",
+      )
       setRedirecting(false)
     }
   }
@@ -35,6 +43,7 @@ export function LoginPage() {
           </svg>
           {redirecting ? "Redirecting to GitHub…" : "Continue with GitHub"}
         </button>
+        {error && <p className="mt-4 text-sm text-rose-600">{error}</p>}
       </div>
     </div>
   )
