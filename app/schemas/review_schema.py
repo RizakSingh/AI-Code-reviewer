@@ -25,6 +25,19 @@ class PullRequestOut(BaseModel):
     title: str
     author: str
     status: str
+    created_at: datetime
     reviews: List[ReviewOut] = []
+
+    model_config = {"from_attributes": True}
+
+
+class RepoCreate(BaseModel):
+    repo_name: str  # e.g. "octocat/hello-world"
+
+
+class RepoOut(BaseModel):
+    id: int
+    repo_name: str
+    created_at: datetime
 
     model_config = {"from_attributes": True}

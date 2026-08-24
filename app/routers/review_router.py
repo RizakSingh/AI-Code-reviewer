@@ -3,11 +3,35 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List
 
 from app.database import get_db
+from app.dependencies import get_current_user
 from app.models.pull_request import PullRequest
 from app.models.repo import Repo
-from app.schemas.review_schema import PullRequestOut
+from app.models.user import User
+from app.schemas.review_schema import PullRequestOut, RepoCreate, RepoOut
 
 router = APIRouter(prefix="/api/reviews", tags=["Reviews"])
+
+
+def _get_owned_repo(repo_id: int, current_user: User, db: Session) -> Repo:
+    repo = db.query(Repo).filter(Repo.id == repo_id).first()
+    if not repo:
+        raise HTTPException(404, "Repo not found")
+    if repo.user_id != current_user.id:
+        raise HTTPException(403, "You do not have access to this repo")
+    return repo
+
+
+@router.get("/repos", response_model=List[RepoOut])
+def list_repos(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(Repo)
+        .filter(Repo.user_id == current_user.id)
+        .order_by(Repo.created_at.desc())
+        .all()
+    )
 
 
 @router.get("/repo/{repo_id}/pull-requests", response_model=List[PullRequestOut])
@@ -15,11 +39,10 @@ def list_pull_requests(
     repo_id: int,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    repo = db.query(Repo).filter(Repo.id == repo_id).first()
-    if not repo:
-        raise HTTPException(404, "Repo not found")
+    _get_owned_repo(repo_id, current_user, db)
 
     prs = (
         db.query(PullRequest)
@@ -34,11 +57,16 @@ def list_pull_requests(
 
 
 @router.get("/pull-request/{pr_id}", response_model=PullRequestOut)
-def get_pull_request(pr_id: int, db: Session = Depends(get_db)):
+def get_pull_request(
+    pr_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     pr = (
         db.query(PullRequest)
+        .join(Repo, PullRequest.repo_id == Repo.id)
         .options(joinedload(PullRequest.reviews))
-        .filter(PullRequest.id == pr_id)
+        .filter(PullRequest.id == pr_id, Repo.user_id == current_user.id)
         .first()
     )
     if not pr:
@@ -46,14 +74,18 @@ def get_pull_request(pr_id: int, db: Session = Depends(get_db)):
     return pr
 
 
-@router.post("/repo")
-def register_repo(repo_name: str, user_id: int, db: Session = Depends(get_db)):
-    existing = db.query(Repo).filter(Repo.repo_name == repo_name).first()
+@router.post("/repo", response_model=RepoOut, status_code=201)
+def register_repo(
+    body: RepoCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    existing = db.query(Repo).filter(Repo.repo_name == body.repo_name).first()
     if existing:
         raise HTTPException(409, "Repo already registered")
 
-    repo = Repo(user_id=user_id, repo_name=repo_name)
+    repo = Repo(user_id=current_user.id, repo_name=body.repo_name)
     db.add(repo)
     db.commit()
     db.refresh(repo)
-    return {"id": repo.id, "repo_name": repo.repo_name}
+    return repo

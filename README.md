@@ -24,8 +24,13 @@ without a human reviewer having to be online.
 - **Paginated PR/review history API**
 - **Dockerized**: separate API and worker containers + Postgres + Redis via
   `docker-compose`
-- **Tests**: pytest suite for webhook signature verification and AI response
-  parsing (11 tests, all passing, no external services required)
+- **Tests**: pytest suite for webhook signature verification, AI response
+  parsing, and session token issuance/validation (14 tests, no external
+  services required)
+- **Session auth**: GitHub OAuth token is exchanged server-side for a
+  short-lived JWT, delivered to the browser as an httpOnly cookie -
+  `/api/reviews/*` endpoints require it and are scoped to the caller's
+  own repos
 
 ## Tech Stack
 
@@ -77,8 +82,16 @@ venv/bin/python -m pytest tests/ -v
 1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App
 2. Set callback URL to `GITHUB_CALLBACK_URL` in your `.env`
 3. Copy Client ID/Secret into `.env`
-4. After a user logs in via `/api/auth/github/login`, register their repo:
-   `POST /api/reviews/repo` with `repo_name` and `user_id`
+4. A user logs in by hitting `/api/auth/github/login`, authorizing on GitHub,
+   and following the redirect back to `/api/auth/github/callback`. The
+   callback upserts the user, then redirects the browser to `CLIENT_URL`
+   with a session JWT set as an httpOnly cookie (`access_token`) - the raw
+   GitHub token never reaches the browser. From there:
+   - `GET /api/auth/me` - who's logged in
+   - `POST /api/auth/logout` - clears the session cookie
+   - `POST /api/reviews/repo` with JSON body `{"repo_name": "..."}` -
+     registers a repo owned by the logged-in user (cookie required)
+   - `GET /api/reviews/repos` - lists the logged-in user's registered repos
 5. Point a webhook at `POST /api/webhooks/github` for the `pull_request`
    event, using `GITHUB_WEBHOOK_SECRET` as the shared secret
    (`github_service.register_webhook` can do this programmatically too)
