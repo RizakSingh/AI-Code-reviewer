@@ -28,9 +28,9 @@ without a human reviewer having to be online.
   parsing, and session token issuance/validation (14 tests, no external
   services required)
 - **Session auth**: GitHub OAuth token is exchanged server-side for a
-  short-lived JWT, delivered to the browser as an httpOnly cookie -
-  `/api/reviews/*` endpoints require it and are scoped to the caller's
-  own repos
+  short-lived JWT, handed to the frontend once via the callback redirect and
+  sent back as a `Bearer` token thereafter - `/api/reviews/*` endpoints
+  require it and are scoped to the caller's own repos
 
 ## Tech Stack
 
@@ -84,13 +84,17 @@ venv/bin/python -m pytest tests/ -v
 3. Copy Client ID/Secret into `.env`
 4. A user logs in by hitting `/api/auth/github/login`, authorizing on GitHub,
    and following the redirect back to `/api/auth/github/callback`. The
-   callback upserts the user, then redirects the browser to `CLIENT_URL`
-   with a session JWT set as an httpOnly cookie (`access_token`) - the raw
-   GitHub token never reaches the browser. From there:
+   callback upserts the user, mints a short-lived session JWT, and redirects
+   the browser to `CLIENT_URL/?token=<jwt>` - the raw GitHub token never
+   reaches the browser. The frontend reads that query param once, stores the
+   JWT itself (e.g. `localStorage`), and sends it as `Authorization: Bearer
+   <jwt>` on every subsequent request (a query-param handoff instead of an
+   httpOnly cookie, since the frontend may be hosted on a different
+   origin/scheme than this API - cross-site cookies need `SameSite=None` +
+   `Secure`, which requires an HTTPS backend). From there:
    - `GET /api/auth/me` - who's logged in
-   - `POST /api/auth/logout` - clears the session cookie
    - `POST /api/reviews/repo` with JSON body `{"repo_name": "..."}` -
-     registers a repo owned by the logged-in user (cookie required)
+     registers a repo owned by the logged-in user (bearer token required)
    - `GET /api/reviews/repos` - lists the logged-in user's registered repos
 5. Point a webhook at `POST /api/webhooks/github` for the `pull_request`
    event, using `GITHUB_WEBHOOK_SECRET` as the shared secret

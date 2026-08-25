@@ -1,19 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 import httpx
 
 from app.config import get_settings
 from app.database import get_db
-from app.dependencies import SESSION_COOKIE_NAME, get_current_user
+from app.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.user_schema import UserOut
 from app.services.auth_service import create_access_token
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 settings = get_settings()
-
-SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 7  # 7 days, matches auth_service token expiry
 
 
 @router.get("/github/login")
@@ -68,31 +66,16 @@ async def github_callback(code: str, db: Session = Depends(get_db)):
     db.refresh(user)
 
     # The GitHub token stays server-side; the browser only gets a
-    # short-lived session JWT in an httpOnly cookie.
+    # short-lived session JWT. It's passed back as a query param rather
+    # than an httpOnly cookie because the frontend may be hosted on a
+    # different origin/scheme than this API (e.g. a deployed frontend
+    # talking to a local backend during dev) - cross-site cookies require
+    # SameSite=None+Secure, which needs an HTTPS backend. The frontend
+    # reads this param once and stores it itself.
     session_token = create_access_token(user.id)
-
-    redirect = RedirectResponse(url=settings.client_url)
-    redirect.set_cookie(
-        key=SESSION_COOKIE_NAME,
-        value=session_token,
-        max_age=SESSION_COOKIE_MAX_AGE,
-        httponly=True,
-        samesite="lax",
-        # "lax" + no explicit domain works as long as the frontend and API
-        # share a registrable domain (e.g. localhost:5173 / localhost:8000,
-        # or app.example.com / api.example.com). A frontend on a fully
-        # different domain would need samesite="none" and secure=True.
-        secure=settings.environment != "development",
-    )
-    return redirect
+    return RedirectResponse(url=f"{settings.client_url}/?token={session_token}")
 
 
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
-
-
-@router.post("/logout")
-def logout(response: Response):
-    response.delete_cookie(SESSION_COOKIE_NAME)
-    return {"status": "logged_out"}
