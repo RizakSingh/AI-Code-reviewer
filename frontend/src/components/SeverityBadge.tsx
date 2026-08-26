@@ -1,9 +1,9 @@
 import type { Severity } from "../api/types"
 
 const STYLES: Record<Severity, string> = {
-  info: "bg-sky-50 text-sky-700 ring-sky-200",
-  warning: "bg-amber-50 text-amber-700 ring-amber-200",
-  critical: "bg-rose-50 text-rose-700 ring-rose-200",
+  info: "bg-sky-100/70 text-sky-700 ring-sky-300 backdrop-blur",
+  warning: "bg-amber-100/70 text-amber-700 ring-amber-300 backdrop-blur",
+  critical: "bg-rose-100/70 text-rose-700 ring-rose-300 backdrop-blur",
 }
 
 export function SeverityBadge({ severity }: { severity: Severity }) {

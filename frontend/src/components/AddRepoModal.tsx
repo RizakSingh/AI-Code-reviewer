@@ -32,11 +32,11 @@ export function AddRepoModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-10 flex items-center justify-center bg-slate-900/40 px-4"
+      className="fixed inset-0 z-10 flex items-center justify-center bg-slate-900/30 px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+        className="w-full max-w-md rounded-xl border border-white/60 bg-white/70 p-6 shadow-xl shadow-indigo-200/40 backdrop-blur-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-slate-900">Connect a repo</h2>
@@ -53,21 +53,21 @@ export function AddRepoModal({ onClose }: { onClose: () => void }) {
             value={repoName}
             onChange={(e) => setRepoName(e.target.value)}
             placeholder="octocat/hello-world"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+            className="mt-1 w-full rounded-md border border-white/70 bg-white/60 px-3 py-2 text-sm backdrop-blur focus:border-fuchsia-400 focus:outline-none focus:ring-1 focus:ring-fuchsia-400"
           />
           {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
           <div className="mt-5 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-white/60"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={mutation.isPending || !repoName.trim()}
-              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-md bg-linear-to-r from-indigo-600 via-fuchsia-600 to-cyan-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-fuchsia-300/40 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {mutation.isPending ? "Connecting…" : "Connect"}
             </button>

@@ -1,10 +1,10 @@
 import type { PullRequestStatus } from "../api/types"
 
 const STYLES: Record<PullRequestStatus, string> = {
-  pending: "bg-slate-100 text-slate-600 ring-slate-200",
-  reviewing: "bg-amber-50 text-amber-700 ring-amber-200",
-  reviewed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  failed: "bg-rose-50 text-rose-700 ring-rose-200",
+  pending: "bg-slate-100/70 text-slate-600 ring-slate-300 backdrop-blur",
+  reviewing: "bg-amber-100/70 text-amber-700 ring-amber-300 backdrop-blur",
+  reviewed: "bg-emerald-100/70 text-emerald-700 ring-emerald-300 backdrop-blur",
+  failed: "bg-rose-100/70 text-rose-700 ring-rose-300 backdrop-blur",
 }
 
 const LABELS: Record<PullRequestStatus, string> = {

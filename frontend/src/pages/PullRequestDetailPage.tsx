@@ -30,7 +30,7 @@ export function PullRequestDetailPage() {
 
   if (isError || !pr) {
     return (
-      <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+      <p className="rounded-lg border border-rose-200 bg-rose-50/70 px-4 py-3 text-sm text-rose-700 backdrop-blur">
         Couldn't load this pull request.
       </p>
     )
@@ -45,7 +45,7 @@ export function PullRequestDetailPage() {
 
   return (
     <div>
-      <Link to="/" className="text-sm font-medium text-slate-500 hover:text-slate-900">
+      <Link to="/" className="text-sm font-medium text-indigo-600 hover:text-fuchsia-600">
         ← Back to repos
       </Link>
 
@@ -63,7 +63,7 @@ export function PullRequestDetailPage() {
 
       <div className="mt-6">
         {(pr.status === "pending" || pr.status === "reviewing") && (
-          <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+          <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/70 px-5 py-4 text-sm text-amber-800 backdrop-blur">
             <Spinner className="h-5 w-5 text-amber-500" />
             {pr.status === "pending"
               ? "Queued for review — this updates automatically."
@@ -72,7 +72,7 @@ export function PullRequestDetailPage() {
         )}
 
         {pr.status === "failed" && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+          <div className="rounded-xl border border-rose-200 bg-rose-50/70 px-5 py-4 text-sm text-rose-700 backdrop-blur">
             This review failed after retrying. Check the worker logs, or push a new commit to
             trigger another review.
           </div>
@@ -80,8 +80,8 @@ export function PullRequestDetailPage() {
 
         {pr.status === "reviewed" && review && (
           <div className="space-y-6">
-            <section className="rounded-xl border border-slate-200 bg-white p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+            <section className="rounded-xl border border-white/50 bg-white/50 p-5 shadow-sm backdrop-blur-xl">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-indigo-500">
                 Summary
               </h2>
               <p className="mt-2 text-slate-800">
@@ -89,8 +89,8 @@ export function PullRequestDetailPage() {
               </p>
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+            <section className="rounded-xl border border-white/50 bg-white/50 p-5 shadow-sm backdrop-blur-xl">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-fuchsia-500">
                 Issues found ({sortedIssues.length})
               </h2>
               {sortedIssues.length === 0 ? (
@@ -114,8 +114,8 @@ export function PullRequestDetailPage() {
               )}
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+            <section className="rounded-xl border border-white/50 bg-white/50 p-5 shadow-sm backdrop-blur-xl">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-cyan-500">
                 Suggestions
               </h2>
               {review.suggestions.length === 0 ? (

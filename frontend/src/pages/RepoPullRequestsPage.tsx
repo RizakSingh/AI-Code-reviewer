@@ -32,7 +32,7 @@ export function RepoPullRequestsPage() {
 
   return (
     <div>
-      <Link to="/" className="text-sm font-medium text-slate-500 hover:text-slate-900">
+      <Link to="/" className="text-sm font-medium text-indigo-600 hover:text-fuchsia-600">
         ← All repos
       </Link>
       <h1 className="mt-2 text-2xl font-semibold text-slate-900">
@@ -47,30 +47,30 @@ export function RepoPullRequestsPage() {
         )}
 
         {isError && (
-          <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <p className="rounded-lg border border-rose-200 bg-rose-50/70 px-4 py-3 text-sm text-rose-700 backdrop-blur">
             Couldn't load pull requests for this repo.
           </p>
         )}
 
         {pullRequests && pullRequests.length === 0 && page === 1 && (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center text-slate-500">
+          <div className="rounded-xl border border-dashed border-slate-300 bg-white/50 px-6 py-16 text-center text-slate-500 backdrop-blur-xl">
             No pull requests reviewed yet. Open a PR on this repo to see it show up here.
           </div>
         )}
 
         {pullRequests && pullRequests.length > 0 && (
-          <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <ul className="divide-y divide-white/50 overflow-hidden rounded-xl border border-white/50 bg-white/50 shadow-sm backdrop-blur-xl">
             {pullRequests.map((pr) => (
               <li key={pr.id}>
                 <Link
                   to={`/pull-requests/${pr.id}`}
-                  className="flex items-center justify-between gap-4 px-4 py-3.5 transition hover:bg-slate-50"
+                  className="flex items-center justify-between gap-4 px-4 py-3.5 transition hover:bg-white/70"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium text-slate-900">
                       #{pr.pr_number} {pr.title}
                     </p>
-                    <p className="mt-0.5 text-xs text-slate-400">
+                    <p className="mt-0.5 text-xs text-slate-500">
                       by {pr.author} · {new Date(pr.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -86,7 +86,7 @@ export function RepoPullRequestsPage() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-md border border-white/60 bg-white/50 px-3 py-1.5 font-medium text-slate-600 backdrop-blur transition hover:bg-white/70 disabled:cursor-not-allowed disabled:opacity-40"
             >
               ← Previous
             </button>
@@ -94,7 +94,7 @@ export function RepoPullRequestsPage() {
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={pullRequests.length < PAGE_SIZE}
-              className="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-md border border-white/60 bg-white/50 px-3 py-1.5 font-medium text-slate-600 backdrop-blur transition hover:bg-white/70 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next →
             </button>
