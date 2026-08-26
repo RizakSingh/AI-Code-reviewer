@@ -35,10 +35,14 @@ def build_review_prompt(diff: str) -> str:
 
 
 def parse_ai_response(raw_text: str) -> dict:
-    """Strips code fences if present and parses the JSON payload.
-    Raises ValueError with a clear message on malformed output so callers
-    can decide how to handle it (e.g. mark the review as failed)."""
     cleaned = raw_text.replace("```json", "").replace("```", "").strip()
+    
+    # Extract just the JSON object, in case there's stray text before/after
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start != -1 and end != -1:
+        cleaned = cleaned[start:end + 1]
+    
     try:
         data = json.loads(cleaned)
     except json.JSONDecodeError as exc:
@@ -49,7 +53,6 @@ def parse_ai_response(raw_text: str) -> dict:
     data.setdefault("suggestions", [])
     return data
 
-
 async def _call_groq(prompt: str) -> str:
     async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(
@@ -59,10 +62,11 @@ async def _call_groq(prompt: str) -> str:
                 "Authorization": f"Bearer {settings.groq_api_key}",
             },
             json={
-                "model":"openai/gpt-oss-120b",
+                "model": "openai/gpt-oss-120b",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.2,
                 "max_tokens": 1024,
+                "response_format": {"type": "json_object"},
             },
         )
         response.raise_for_status()
